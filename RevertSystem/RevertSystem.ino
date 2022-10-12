@@ -6,6 +6,7 @@
 #define IR_SENSOR 7
 #define A1_MOTOR 10
 #define A2_MOTOR 11
+#define RELAY 12
 
 void SetText(char *TEXT, int COLUMNS = 0, int ROW = 0);
 void Resetlcd();
@@ -25,15 +26,24 @@ void setup() {
   
   lcd.init();
   lcd.backlight();
+  Resetlcd();
 
   SetText("RevertSystem", 2, 0);
   SetText("Team : ArtMega", 1, 1);
 
   pinMode(IR_SENSOR, INPUT);
   pinMode(BUZZER, OUTPUT);
+  pinMode(RELAY, OUTPUT);
 
   Buzzer(300, 100);
   Buzzer(600, 175);
+
+  delay(1250);
+
+  Buzzer(550, 200);
+
+  Resetlcd();
+  SetText("WAITING...", 4, 0);
 
 }
 
@@ -53,19 +63,33 @@ void loop() {
     Sound = 750;
   }
 
+  if(!isIR() && !isTurn){
+    digitalWrite(RELAY, HIGH);
+    delay(500);
+    digitalWrite(RELAY, LOW);
+    delay(500);
+  }
+
   if(isTurn){
 
-    if(looptime == 200){
-      isTurnAlarm = false;
+    if(looptime == 1){
       Resetlcd();
       SetText("!Detected!", 3, 0);
     }
 
+    if(looptime == 200){
+      isTurnAlarm = false;
+    }
+
     if(looptime > 5500){
-      StopMotor(250);
+      StopMotor(375);
       looptime = 0;
       isTurn = false;
       isTurnAlarm = true;
+
+      Resetlcd();
+      SetText("WAITING...", 4, 0);
+
     }
     
     delay(1);
