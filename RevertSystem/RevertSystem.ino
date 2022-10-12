@@ -1,12 +1,14 @@
 
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include <Servo.h>
 
 #define BUZZER 4
 #define IR_SENSOR 7
 #define A1_MOTOR 10
 #define A2_MOTOR 11
 #define RELAY 12
+#define NORMAL_ANGLE 0
 
 void SetText(char *TEXT, int COLUMNS = 0, int ROW = 0);
 void Resetlcd();
@@ -14,8 +16,10 @@ bool isIR(int IR_SENSOR_PIN = IR_SENSOR);
 void TurnMotor(uint8_t SPEED = 0);
 void Buzzer(int TONE, int TIME);
 void StopMotor(int DELAY);
+void ServoUse(int SERVO_PIN, int ANGLE = NORMAL_ANGLE, int DELAY = 0);
 
 LiquidCrystal_I2C lcd(0x27,20,4);
+Servo myservo;
 
 int Sound = 700;
 bool isTurn = false;
@@ -89,14 +93,10 @@ void loop() {
 
       Resetlcd();
       SetText("WAITING...", 4, 0);
-
     }
-    
     delay(1);
     looptime++;
-
   }
-
 }
 
 void SetText(char *TEXT, int COLUMNS = 0, int ROW = 0){
@@ -125,8 +125,14 @@ void Buzzer(int TONE, int TIME){
 }
 
 void StopMotor(int DELAY){
-
   delay(DELAY);
   TurnMotor();
+}
 
+void ServoUse(int SERVO_PIN, int ANGLE = NORMAL_ANGLE, int DELAY = 0)
+{
+    myservo.attach(SERVO_PIN);
+    myservo.write(ANGLE);
+
+    delay(DELAY);
 }
