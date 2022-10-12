@@ -9,7 +9,6 @@
 
 void SetText(char *TEXT, int COLUMNS = 0, int ROW = 0);
 void Resetlcd();
-void Setlcd(bool BACKLIGHT = true, bool CURSOR = false, bool SHOW = true);
 bool isIR(int IR_SENSOR_PIN = IR_SENSOR);
 void TurnMotor(uint8_t SPEED = 0);
 void Buzzer(int TONE, int TIME);
@@ -17,8 +16,9 @@ void StopMotor(int DELAY);
 
 LiquidCrystal_I2C lcd(0x27,20,4);
 
-int Sound = 750;
+int Sound = 700;
 bool isTurn = false;
+bool isTurnAlarm = true;
 int looptime = 0;
 
 void setup() {
@@ -39,11 +39,10 @@ void setup() {
 
 void loop() {
 
-  if(isIR() && !isTurn){
-
-    Sound += 125;
+  if(isIR() && isTurnAlarm){
 
     TurnMotor(200);
+    Sound += 100;
     delay(50);
     Buzzer(Sound, 25);
 
@@ -56,15 +55,21 @@ void loop() {
 
   if(isTurn){
 
+    if(looptime == 200){
+      isTurnAlarm = false;
+      Resetlcd();
+      SetText("!Detected!", 3, 0);
+    }
+
     if(looptime > 5500){
-      StopMotor(500);
+      StopMotor(250);
       looptime = 0;
       isTurn = false;
+      isTurnAlarm = true;
     }
-    else{
-      delay(1);
-      looptime++;
-    }
+    
+    delay(1);
+    looptime++;
 
   }
 
@@ -78,23 +83,6 @@ void SetText(char *TEXT, int COLUMNS = 0, int ROW = 0){
 void Resetlcd(){
   lcd.backlight();
   lcd.clear();
-}
-
-void Setlcd(bool BACKLIGHT = true, bool CURSOR = false, bool SHOW = true){
-  if(BACKLIGHT)
-    lcd.backlight();
-  else
-    lcd.noBacklight();
-
-  if(CURSOR)
-    lcd.cursor();
-  else
-    lcd.noCursor();
-
-  if(SHOW)
-    lcd.display();
-  else
-    lcd.noDisplay();
 }
 
 bool isIR(int IR_SENSOR_PIN = IR_SENSOR){
