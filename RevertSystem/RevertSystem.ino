@@ -22,7 +22,7 @@ void Buzzer(int TONE, int TIME);
 void StopMotor(int DELAY);
 void ServoUse(int SERVO_PIN, int ANGLE = NORMAL_ANGLE, int DELAY = 0);
 void LED(bool SWITCH, int R = 0, int G = 0, int B = 0);
-void Receiver();
+char Receiver();
 
 LiquidCrystal_I2C lcd(0x27,20,4);
 Servo myservo;
@@ -32,7 +32,7 @@ int Sound = 700;
 bool isTurn = false;
 bool isTurnAlarm = true;
 int looptime = 0;
-char DATA = '';
+char DATA = ' ';
 
 void setup() {
   
