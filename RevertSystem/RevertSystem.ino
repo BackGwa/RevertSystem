@@ -42,7 +42,7 @@ void setup() {
   lcd.backlight();
   Resetlcd();
   strip.begin();
-  strip.setBrightness(50);
+  strip.setBrightness(30);
   LED(false);
 
   SetText("RevertSystem", 2, 0);
@@ -59,7 +59,6 @@ void setup() {
   delay(1250);
 
   Buzzer(550, 200);
-
   Resetlcd();
 
 }
@@ -83,7 +82,7 @@ void loop() {
   if(!isIR() && !isTurn){
     Sound = 750;
     digitalWrite(RELAY, HIGH);
-    LED(true, 255, 0, 0);
+    LED(true, 255, 127, 0);
     SetText("WAITING", 4, 0);
     delay(125);
     SetText("WAITING.", 4, 0);
@@ -182,4 +181,28 @@ char Receiver(){
   }
 
   return 'X';
+}
+
+void error(String errcode){
+  delay(1000);
+  Resetlcd();
+  SetText("[ ERROR! ]", 3, 0);
+  SetText("Reporter >> ", 1, 1);
+  SetText(errcode, 13, 1)
+
+  strip.setBrightness(100);
+  LED(true, 255, 0, 0);
+
+  Buzzer(150, 200);
+  Buzzer(175, 150);
+  Buzzer(200, 100);
+
+  while(true){
+    LED(true, 255, 0, 0);
+    Buzzer(100, 50);
+    delay(1500);
+    LED(false);
+    Buzzer(200, 50);
+    delay(1500);
+  }
 }

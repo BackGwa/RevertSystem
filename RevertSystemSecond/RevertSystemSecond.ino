@@ -46,7 +46,6 @@ void loop(){
     ServoUse(3, 70);
     TurnMotor(175);
     loopturn = true;
-    Serial.println("LOOPING...");
   }
 
   else if(loopturn){
