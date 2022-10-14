@@ -42,7 +42,7 @@ void setup() {
   lcd.backlight();
   Resetlcd();
   strip.begin();
-  strip.setBrightness(30);
+  strip.setBrightness(100);
   LED(false);
 
   SetText("RevertSystem", 2, 0);
@@ -55,7 +55,7 @@ void setup() {
 
   Buzzer(300, 100);
   Buzzer(600, 175);
-
+  
   delay(1250);
 
   Buzzer(550, 200);
@@ -160,6 +160,7 @@ void ServoUse(int SERVO_PIN, int ANGLE = NORMAL_ANGLE, int DELAY = 0){
     myservo.write(ANGLE);
 
     delay(DELAY);
+    myservo.detach();
 }
 
 void LED(bool SWITCH, int R = 0, int G = 0, int B = 0){
@@ -183,12 +184,12 @@ char Receiver(){
   return 'X';
 }
 
-void error(String errcode){
+void error(char *errcode){
   delay(1000);
   Resetlcd();
   SetText("[ ERROR! ]", 3, 0);
   SetText("Reporter >> ", 1, 1);
-  SetText(errcode, 13, 1)
+  SetText(errcode, 13, 1);
 
   strip.setBrightness(100);
   LED(true, 255, 0, 0);
