@@ -3,14 +3,15 @@
 #include <LiquidCrystal_I2C.h>
 #include <Servo.h>
 #include <Adafruit_NeoPixel.h>
+#include "Adafruit_TCS34725.h"
 
 #define BUZZER 4
 #define IR_SENSOR 7
-#define A1_MOTOR 10
-#define A2_MOTOR 11
+#define A1_MOTOR A0
+#define A2_MOTOR A1
 #define RELAY 12
 #define LED_PIN 9
-#define NORMAL_ANGLE 0
+#define NORMAL_ANGLE 120
 #define LED_NUM 1
 #define BOARD_RATE 9600
 
@@ -20,19 +21,22 @@ bool isIR(int IR_SENSOR_PIN = IR_SENSOR);
 void TurnMotor(uint8_t SPEED = 0);
 void Buzzer(int TONE, int TIME);
 void StopMotor(int DELAY);
-void ServoUse(int SERVO_PIN, int ANGLE = NORMAL_ANGLE, int DELAY = 0);
 void LED(bool SWITCH, int R = 0, int G = 0, int B = 0);
 char Receiver();
 
 LiquidCrystal_I2C lcd(0x27,20,4);
-Servo myservo;
+Servo SERVO;
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(LED_NUM, LED_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_1X);
 
+char setcolor = ' ';
 int Sound = 700;
 bool isTurn = false;
 bool isTurnAlarm = true;
 int looptime = 0;
 char DATA = ' ';
+uint16_t clear, red, green, blue;
+byte gammatable[256];
 
 void setup() {
   
@@ -45,17 +49,42 @@ void setup() {
   strip.setBrightness(100);
   LED(false);
 
-  SetText("RevertSystem", 2, 0);
-  SetText("Team : ArtMega", 1, 1);
+  Buzzer(300, 150);
+  SetText("CHECKING...", 3, 0);
+
+  if(!tcs.begin()){
+    error("SE1");
+  }
+
+  delay(1000);
+  digitalWrite(RELAY, LOW);
+
+  Resetlcd();
 
   pinMode(IR_SENSOR, INPUT);
   pinMode(BUZZER, OUTPUT);
   pinMode(RELAY, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
 
+  SetText("RevertSystem", 2, 0);
+  SetText("Team : ArtMega", 1, 1);
   Buzzer(300, 100);
   Buzzer(600, 175);
   
+  SERVO.attach(6);
+  SERVO.write(NORMAL_ANGLE);
+
+  delay(400);
+  SERVO.detach();
+  delay(1);
+
+  SERVO.attach(5);
+  SERVO.write(NORMAL_ANGLE);
+
+  delay(400);
+  SERVO.detach();
+  delay(1);
+
   delay(1250);
 
   Buzzer(550, 200);
@@ -96,15 +125,13 @@ void loop() {
     delay(500);
     Resetlcd();
   }
-  else{
-    LED(true, 255, 255, 255);
-  }
 
   if(isTurn){
 
     if(looptime == 1){
       Resetlcd();
       SetText("!Detected!", 3, 0);
+      LED(true, 255, 255, 255);
     }
 
     if(looptime == 200){
@@ -123,6 +150,83 @@ void loop() {
     delay(1);
     looptime++;
   }
+
+  if(looptime > 200 && looptime < 1000){
+
+    StopMotor(0);
+    tcs.setInterrupt(false);
+    delay(25);
+    looptime += 25;
+
+    tcs.getRawData(&red, &green, &blue, &clear);
+    tcs.setInterrupt(true);
+
+    uint32_t sum = clear;
+    float r, g, b;
+
+    r = red; r /= sum;
+    g = green; g /= sum;
+    b = blue; b /= sum;
+    r *= 10; g *= 10; b *= 10;
+
+    Serial.print(r);
+    Serial.print(" ");
+    Serial.print(g);
+    Serial.print(" ");
+    Serial.print(b);
+    Serial.println();
+
+    if(r < 5 && g < 5 && b < 5){
+      LED(true, 255, 255, 255);
+      setcolor = 's';
+    }
+    else if((r > g) && (r > b)){
+      LED(true, 255, 0, 0);
+      setcolor = 'r';
+    }
+    else if((g > r) && (g > b)){
+      LED(true, 0, 255, 0);
+      setcolor = 'g';
+    }
+    else if((b > r) && (b > g)){
+      LED(true, 0, 0, 255);
+      setcolor = 'b';
+    }
+    else if((r < g) && (r < b)){
+      LED(true, 0, 255, 255);
+      setcolor = 'c';
+    }
+    else if((g < r) && (g < b)){
+      LED(true, 255, 0, 255);
+      setcolor = 'm';
+    }
+    else if((b < r) && (b < g)){
+      LED(true, 255, 255, 0);
+      setcolor = 'y';
+    }
+    else{
+      LED(false);
+    }
+    }
+
+    if(looptime > 1000 && looptime < 1010){
+
+      TurnMotor(200);
+
+      if(setcolor == 'r'){
+        SetText("DEBUGCOLOR R", 0, 1);
+      }
+      else if(setcolor == 'g'){
+        SetText("DEBUGCOLOR G", 0, 1);
+      }
+      else if(setcolor == 'b'){
+        SetText("DEBUGCOLOR B", 0, 1);
+      }
+      else if(setcolor == 's'){
+        SetText("COLOR NONE", 0, 1);
+      }
+
+      }
 }
 
 void SetText(char *TEXT, int COLUMNS = 0, int ROW = 0){
@@ -155,14 +259,6 @@ void StopMotor(int DELAY){
   TurnMotor();
 }
 
-void ServoUse(int SERVO_PIN, int ANGLE = NORMAL_ANGLE, int DELAY = 0){
-    myservo.attach(SERVO_PIN);
-    myservo.write(ANGLE);
-
-    delay(DELAY);
-    myservo.detach();
-}
-
 void LED(bool SWITCH, int R = 0, int G = 0, int B = 0){
   if(SWITCH){
     strip.setPixelColor(0, R, G, B);
@@ -184,12 +280,28 @@ char Receiver(){
   return 'X';
 }
 
+// SE : SENSOR ERROR
+//  1 : COLOR
+//  2 : RFID
+//  3 : IR
+
+// ME : MODULE ERROR
+//  1 : LED
+//  2 : RELAY
+//  3 : BUZZER
+//  4 : LCD
+//  5 : MOTOR CONTROLLER A
+//  6 : MOTOR CONTROLLER B
+//  7 : SERVO A
+//  8 : SERVO B
+//  9 : UNKNOWN MODULE
+
 void error(char *errcode){
   delay(1000);
   Resetlcd();
   SetText("[ ERROR! ]", 3, 0);
-  SetText("Reporter >> ", 1, 1);
-  SetText(errcode, 13, 1);
+  SetText("Reporter >> ", 0, 1);
+  SetText(errcode, 12, 1);
 
   strip.setBrightness(100);
   LED(true, 255, 0, 0);
