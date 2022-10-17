@@ -76,14 +76,12 @@ void setup() {
 
   delay(400);
   SERVO.detach();
-  delay(1);
 
   SERVO.attach(5);
   SERVO.write(NORMAL_ANGLE);
 
   delay(400);
   SERVO.detach();
-  delay(1);
 
   delay(1250);
 
@@ -96,7 +94,7 @@ void loop() {
   if(isIR() && isTurnAlarm){
 
     LED(false);
-    TurnMotor(200);
+    TurnMotor(150);
     Sound += 100;
     delay(50);
     Buzzer(Sound, 25);
@@ -146,6 +144,12 @@ void loop() {
 
       Resetlcd();
       SetText("WAITING...", 4, 0);
+
+      SERVO.attach(5);
+      SERVO.write(NORMAL_ANGLE);
+      delay(500);
+      SERVO.attach(6);
+      SERVO.write(NORMAL_ANGLE);
     }
     delay(1);
     looptime++;
@@ -176,7 +180,7 @@ void loop() {
     Serial.print(b);
     Serial.println();
 
-    if(r < 5 && g < 5 && b < 5){
+    if(r < 4 && g < 4 && b < 4){
       LED(true, 255, 255, 255);
       setcolor = 's';
     }
@@ -211,19 +215,21 @@ void loop() {
 
     if(looptime > 1000 && looptime < 1010){
 
-      TurnMotor(200);
+      TurnMotor(250);
 
       if(setcolor == 'r'){
         SetText("DEBUGCOLOR R", 0, 1);
+        SERVO.attach(6);
+        SERVO.write(140);
       }
-      else if(setcolor == 'g'){
-        SetText("DEBUGCOLOR G", 0, 1);
-      }
+
       else if(setcolor == 'b'){
         SetText("DEBUGCOLOR B", 0, 1);
+        SERVO.attach(5);
+        SERVO.write(140);
       }
       else if(setcolor == 's'){
-        SetText("COLOR NONE", 0, 1);
+        SetText("SKIP COLOR", 0, 1);
       }
 
       }
