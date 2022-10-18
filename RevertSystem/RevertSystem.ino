@@ -74,14 +74,30 @@ void setup() {
   SERVO.attach(6);
   SERVO.write(NORMAL_ANGLE);
 
+  if(!SERVO.attached()){
+    error("ME7");
+  }
+
   delay(400);
   SERVO.detach();
+
+  if(SERVO.attached()){
+    error("ME7");
+  }
 
   SERVO.attach(5);
   SERVO.write(NORMAL_ANGLE);
 
+  if(!SERVO.attached()){
+    error("ME8");
+  }
+
   delay(400);
   SERVO.detach();
+
+  if(SERVO.attached()){
+    error("ME8");
+  }
 
   delay(1250);
 
@@ -288,19 +304,10 @@ char Receiver(){
 
 // SE : SENSOR ERROR
 //  1 : COLOR
-//  2 : RFID
-//  3 : IR
 
 // ME : MODULE ERROR
-//  1 : LED
-//  2 : RELAY
-//  3 : BUZZER
-//  4 : LCD
-//  5 : MOTOR CONTROLLER A
-//  6 : MOTOR CONTROLLER B
 //  7 : SERVO A
 //  8 : SERVO B
-//  9 : UNKNOWN MODULE
 
 void error(char *errcode){
   delay(1000);
