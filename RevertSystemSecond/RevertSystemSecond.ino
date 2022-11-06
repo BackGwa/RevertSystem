@@ -14,6 +14,7 @@ MFRC522 RFID(SS_PIN, RST_PIN);
 Servo SERVO;
 
 String RFID_VALUE = "32 6D 56 D3";
+String RFID_VALUE2 = "B9 8A 56 D3";
 int RFID_RETURN = 0;
 int looptime = 0;
 
@@ -28,7 +29,7 @@ void setup(){
   SPI.begin();
   RFID.PCD_Init();
 
-  ServoUse(3, 70);
+  ServoUse(3, 60);
   TurnMotor(0);
 }
 
@@ -39,12 +40,20 @@ void loop(){
     RFID_RETURN = isRFID();
   }
 
-  if(RFID_RETURN == 1 && !loopturn){
-    delay(500);
-    ServoUse(3, 180);
-    delay(1250);
-    ServoUse(3, 70);
+  if(((RFID_RETURN == 1) || (RFID_RETURN == 2)) && !loopturn){
+
+    if(RFID_RETURN == 1){
+      Send('a');
+    }
+    else if (RFID_RETURN == 2){
+      Send('b');
+    }
+    
     TurnMotor(175);
+    delay(785);
+    ServoUse(3, 170);
+    delay(1250);
+    ServoUse(3, 60);
     loopturn = true;
   }
 
@@ -72,21 +81,23 @@ int isRFID(){
     return 0;
   }
 
-  Serial.print("RFID VALUE >> ");
-
   for (byte i = 0; i < RFID.uid.size; i++){
-     Serial.print(RFID.uid.uidByte[i] < 0x10 ? " 0" : " ");
-     Serial.print(RFID.uid.uidByte[i], HEX);
      content.concat(String(RFID.uid.uidByte[i] < 0x10 ? " 0" : " "));
      content.concat(String(RFID.uid.uidByte[i], HEX));
   }
 
   Serial.println();
 
-  //content.toUpperCase();
-  //content.substring(1) == RFID_VALUE
+  content.toUpperCase();
 
-  return 1;
+  if(content.substring(1) == RFID_VALUE){
+    return 1;
+  }
+
+  if(content.substring(1) == RFID_VALUE2){
+    return 2;
+  }
+  return 0;
 }
 
 void TurnMotor(uint8_t SPEED = 0){
@@ -94,7 +105,7 @@ void TurnMotor(uint8_t SPEED = 0){
   analogWrite(A2_MOTOR, 0);
 }
 
-void Send(int DATA){
+void Send(char DATA){
   Serial.print(DATA);
 }
 
