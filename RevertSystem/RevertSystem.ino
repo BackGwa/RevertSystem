@@ -33,10 +33,12 @@ char setcolor = ' ';
 int Sound = 700;
 bool isTurn = false;
 bool isTurnAlarm = true;
+bool coloruse = false;
 int looptime = 0;
-char DATA = ' ';
+char DATA = "";
 uint16_t clear, red, green, blue;
 byte gammatable[256];
+char CODETAG = "";
 
 void setup() {
   
@@ -107,6 +109,7 @@ void setup() {
 }
 
 void loop() {
+
   if(isIR() && isTurnAlarm){
 
     LED(false);
@@ -148,7 +151,7 @@ void loop() {
       LED(true, 255, 255, 255);
     }
 
-    if(looptime == 200){
+    if(looptime == 150){
       isTurnAlarm = false;
     }
 
@@ -166,6 +169,8 @@ void loop() {
       delay(500);
       SERVO.attach(6);
       SERVO.write(NORMAL_ANGLE);
+      delay(500);
+      SERVO.detach();
     }
     delay(1);
     looptime++;
@@ -210,7 +215,7 @@ void loop() {
     }
     else if((b > r) && (b > g)){
       LED(true, 0, 0, 255);
-      setcolor = 'b';
+      setcolor = 'p';
     }
     else if((r < g) && (r < b)){
       LED(true, 0, 255, 255);
@@ -235,20 +240,48 @@ void loop() {
 
       if(setcolor == 'r'){
         SetText("DEBUGCOLOR R", 0, 1);
+        coloruse = true;
         SERVO.attach(6);
-        SERVO.write(140);
+        SERVO.write(40);
+        delay(500);
+        SERVO.detach();
       }
 
-      else if(setcolor == 'b'){
+      else if(setcolor == 'p'){
         SetText("DEBUGCOLOR B", 0, 1);
+        coloruse = true;
         SERVO.attach(5);
-        SERVO.write(140);
+        SERVO.write(40);
+        delay(500);
+        SERVO.detach();
       }
       else if(setcolor == 's'){
         SetText("SKIP COLOR", 0, 1);
+        coloruse = false;
+      }
       }
 
-      }
+  if(looptime > 1000 && !coloruse && looptime < 5500){
+    CODETAG = Receiver();
+
+    Serial.println(CODETAG);
+
+    if(CODETAG == 'a'){
+      SERVO.attach(6);
+      SERVO.write(150);
+      delay(500);
+      SERVO.detach();
+    }
+
+    else if(CODETAG == 'b'){
+      SERVO.attach(5);
+      SERVO.write(150);
+      delay(500);
+      SERVO.detach();
+    }
+
+  }
+
 }
 
 void SetText(char *TEXT, int COLUMNS = 0, int ROW = 0){
@@ -299,15 +332,8 @@ char Receiver(){
     return DATA;
   }
 
-  return 'X';
+  return 'n';
 }
-
-// SE : SENSOR ERROR
-//  1 : COLOR
-
-// ME : MODULE ERROR
-//  7 : SERVO A
-//  8 : SERVO B
 
 void error(char *errcode){
   delay(1000);
